@@ -1,20 +1,20 @@
 /* eslint-disable class-methods-use-this */
 import { PlayerInDB } from "../models/player";
-import { PlayerInRoom, Room } from "../models/room";
+import { PlayerInRoom, UpdateRoomsResponse } from "../models/room";
 import generateNumberId from "../utils/generateNumberId";
 
 class RoomService {
-  private rooms: Array<Room>;
+  private rooms: Array<UpdateRoomsResponse>;
 
   constructor() {
     this.rooms = [];
   }
 
-  public getAllRooms(): Array<Room> {
+  public getAllRooms(): Array<UpdateRoomsResponse> {
     return this.rooms;
   }
 
-  public addPlayerToRoom(room: Room, player: PlayerInDB): boolean {
+  public addPlayerToRoom(room: UpdateRoomsResponse, player: PlayerInDB): boolean {
     const checkPlayersIsDifferent = room.roomUsers[0].index === player.index;
 
     if (!checkPlayersIsDifferent) {
@@ -26,7 +26,7 @@ class RoomService {
   }
 
   public createRoomWithPlayer(player: PlayerInDB) {
-    const newRoom: Room = {
+    const newRoom: UpdateRoomsResponse = {
       roomId: generateNumberId(),
       roomUsers: [
         {
@@ -42,7 +42,7 @@ class RoomService {
     }
   }
 
-  private deleteRoom(room: Room): void {
+  private deleteRoom(room: UpdateRoomsResponse): void {
     const index = this.rooms.indexOf(room);
     this.rooms.splice(index, 1);
   }
@@ -61,7 +61,7 @@ class RoomService {
     });
   }
 
-  public findRoomByIndex(index: number): Room | null {
+  public findRoomByIndex(index: number): UpdateRoomsResponse | null {
     return this.rooms.find((room) => room.roomId === index) || null;
   }
 }

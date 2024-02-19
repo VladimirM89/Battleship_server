@@ -1,22 +1,41 @@
-import { ShipType } from "../constants/enums/webSocket";
+import { ShotStatus } from "../constants/enums/webSocket";
+import { Ship } from "./room";
 
-interface ShipCoordinates {
+export interface CreateGameResponse {
+  idGame: number;
+  idPlayer: number;
+}
+
+export interface StartGameResponse {
+  ships: Array<Ship>;
+  currentPlayerIndex: number;
+}
+
+export interface AttackRequest {
+  gameId: number;
   x: number;
   y: number;
+  indexPlayer: number;
 }
 
-interface Ship {
-  position: ShipCoordinates;
-  direction: boolean;
-  length: number;
-  type: keyof typeof ShipType;
-}
-
-export interface Game {
-  gameId: number;
-  players: Array<{
-    ships?: Array<Ship>;
-    indexPlayer: number;
-  }>;
+export interface AttackResponse {
+  position: {
+    x: number;
+    y: number;
+  };
   currentPlayer: number;
+  status: keyof typeof ShotStatus;
+}
+
+export interface RandomAttackRequest {
+  gameId: number;
+  indexPlayer: number;
+}
+
+export interface PlayerTurnResponse {
+  currentPlayer: number;
+}
+
+export interface FinishResponse {
+  winPlayer: number;
 }

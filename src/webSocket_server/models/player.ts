@@ -1,15 +1,8 @@
 import { WebSocket } from "ws";
 
-export interface PlayerRequest {
+export interface UpdateWinnersResponse {
   name: string;
-  password: string;
-}
-
-export interface PlayerResponse {
-  name: string;
-  index: number;
-  error: boolean;
-  errorText: string;
+  wins: number;
 }
 
 export interface PlayerInDB {

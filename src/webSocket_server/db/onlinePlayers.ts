@@ -1,5 +1,6 @@
 import { WebSocket } from "ws";
-import { OnlinePlayer, PlayerRequest } from "../models/player";
+import { OnlinePlayer } from "../models/player";
+import { LoginRequest } from "../models/registration";
 
 class OnlinePlayers {
   private onlinePlayers: Array<OnlinePlayer>;
@@ -40,7 +41,7 @@ class OnlinePlayers {
     return result || null;
   }
 
-  public isPlayerOnline(data: PlayerRequest): boolean {
+  public isPlayerOnline(data: LoginRequest): boolean {
     const onlinePlayer = this.getAllOnlinePlayers().find((item) => item.player.name === data.name);
     return !!onlinePlayer;
   }

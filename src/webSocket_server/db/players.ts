@@ -1,7 +1,8 @@
 /* eslint-disable import/no-cycle */
 import { playersOnline } from "..";
 import { INCORRECT_PLAYER_PASSWORD_TEXT, PLAYER_ONLINE_TEXT } from "../constants/constants";
-import { PlayerInDB, PlayerRequest, PlayerResponse } from "../models/player";
+import { PlayerInDB, UpdateWinnersResponse } from "../models/player";
+import { LoginRequest, LoginResponse } from "../models/registration";
 import generateNumberId from "../utils/generateNumberId";
 
 class Players {
@@ -15,21 +16,21 @@ class Players {
     return this.players;
   }
 
-  private createPlayer(data: PlayerRequest): void {
+  private createPlayer(data: LoginRequest): void {
     this.players.push({ ...data, index: generateNumberId(), wins: 0 });
   }
 
-  private checkIsPasswordCorrect(data: PlayerRequest): boolean {
+  private checkIsPasswordCorrect(data: LoginRequest): boolean {
     const result = this.players.find((player) => player.password === data.password);
     return !!result;
   }
 
-  public findPlayer(data: PlayerRequest): PlayerInDB | null {
+  public findPlayer(data: LoginRequest): PlayerInDB | null {
     const result = this.players.find((player) => player.name === data.name);
     return result || null;
   }
 
-  public handlePlayerLogin(data: PlayerRequest): PlayerResponse {
+  public handlePlayerLogin(data: LoginRequest): LoginResponse {
     const player = this.findPlayer(data);
 
     if (!player) {
@@ -40,7 +41,7 @@ class Players {
         wins: 0,
       };
       this.createPlayer(newPlayer);
-      const playerResponse: PlayerResponse = {
+      const playerResponse: LoginResponse = {
         name: newPlayer.name,
         index: newPlayer.index,
         error: false,
@@ -49,7 +50,7 @@ class Players {
       return playerResponse;
     }
 
-    const playerResponse: PlayerResponse = {
+    const playerResponse: LoginResponse = {
       name: player.name,
       index: player.index,
       error: false,
@@ -67,8 +68,12 @@ class Players {
     return playerResponse;
   }
 
-  public getPlayersWithWins(): Array<PlayerInDB> {
-    return this.players.filter((player) => player.wins > 0);
+  public getPlayersWithWins(): Array<UpdateWinnersResponse> {
+    const players = this.players.filter((player) => player.wins > 0);
+    const result = players.map(({ name, wins }) => {
+      return { name, wins };
+    });
+    return result;
   }
 }
 

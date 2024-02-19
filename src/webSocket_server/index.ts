@@ -5,13 +5,15 @@ import { WebSocketServer } from "ws";
 import { WEBSOCKET_HOST, WEBSOCKET_PORT } from "./constants/webSocketConstants";
 import { WEBSOCKET_START_TEXT } from "./constants/constants";
 import { Type } from "./constants/enums/webSocket";
-import { PlayerRequest } from "./models/player";
 import commonRequestResponse from "./models/commonRequestResponse";
 import Players from "./db/players";
 import OnlinePlayers from "./db/onlinePlayers";
 import generateStringId from "./utils/generateStringId";
 import RoomService from "./services/RoomService";
 import generateNumberId from "./utils/generateNumberId";
+import { LoginRequest } from "./models/registration";
+import { AddPlayerToRoomRequest } from "./models/room";
+import { CreateGameResponse } from "./models/game";
 
 const wss = new WebSocketServer({ port: WEBSOCKET_PORT, host: WEBSOCKET_HOST });
 console.log(`${WEBSOCKET_START_TEXT} ${WEBSOCKET_HOST}: ${WEBSOCKET_PORT}`);
@@ -31,7 +33,7 @@ wss.on("connection", (ws) => {
 
     switch (request.type) {
       case Type.REG:
-        const loginData = requestRawData as PlayerRequest;
+        const loginData = requestRawData as LoginRequest;
         const playerDataResponse = players.handlePlayerLogin(loginData);
 
         const response: commonRequestResponse = {
@@ -95,7 +97,7 @@ wss.on("connection", (ws) => {
         break;
 
       case Type.ADD_USER_TO_ROOM:
-        const { indexRoom } = requestRawData as { indexRoom: number };
+        const { indexRoom } = requestRawData as AddPlayerToRoomRequest;
 
         const currPlayer = playersOnline.findOnlinePlayerByWs(ws)!.player;
 
@@ -118,14 +120,15 @@ wss.on("connection", (ws) => {
 
         currentRoom?.roomUsers.forEach((item) => {
           const player = playersOnline.findOnlinePlayerById(item.index);
+          const createGameResponse: CreateGameResponse = {
+            idGame: gameIndex,
+            idPlayer: item.index,
+          };
 
           player?.webSocket.send(
             JSON.stringify({
               type: Type.CREATE_GAME,
-              data: JSON.stringify({
-                idGame: gameIndex,
-                idPlayer: item.index,
-              }),
+              data: JSON.stringify(createGameResponse),
               id: 0,
             }),
           );

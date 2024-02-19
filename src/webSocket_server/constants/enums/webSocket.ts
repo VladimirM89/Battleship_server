@@ -19,3 +19,9 @@ export enum ShipType {
   LARGE = "large",
   HUGE = "huge",
 }
+
+export enum ShotStatus {
+  MISS = "miss",
+  KILLED = "killed",
+  SHOT = "shot",
+}
