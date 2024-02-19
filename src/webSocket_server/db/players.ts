@@ -9,7 +9,20 @@ class Players {
   private players: Array<PlayerInDB>;
 
   constructor() {
-    this.players = [];
+    this.players = [
+      {
+        index: 476,
+        name: "testWins5",
+        password: "sdhvsgdv",
+        wins: 5,
+      },
+      {
+        index: 47655,
+        name: "testWins1",
+        password: "sdhvsgdv4",
+        wins: 1,
+      },
+    ];
   }
 
   public getAllPlayers() {
@@ -73,6 +86,10 @@ class Players {
     }
 
     return playerResponse;
+  }
+
+  public getPlayersWithWins(): Array<PlayerInDB> {
+    return this.players.filter((player) => player.wins > 0);
   }
 }
 
