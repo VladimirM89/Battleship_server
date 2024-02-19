@@ -8,10 +8,10 @@ import { Type } from "./constants/enums/webSocket";
 import { PlayerRequest } from "./models/player";
 import commonRequestResponse from "./models/commonRequestResponse";
 import Players from "./db/players";
-import findWebSocket from "./utils/findWebSocket";
 import OnlinePlayers from "./db/onlinePlayers";
 import generateStringId from "./utils/generateStringId";
 import RoomService from "./services/RoomService";
+import generateNumberId from "./utils/generateNumberId";
 
 const wss = new WebSocketServer({ port: WEBSOCKET_PORT, host: WEBSOCKET_HOST });
 console.log(`${WEBSOCKET_START_TEXT} ${WEBSOCKET_HOST}: ${WEBSOCKET_PORT}`);
@@ -27,10 +27,11 @@ wss.on("connection", (ws) => {
     const request: commonRequestResponse = JSON.parse(rawData.toString());
     console.log("received: ", request);
 
+    const requestRawData: unknown = request.data.length ? JSON.parse(request.data) : request.data;
+
     switch (request.type) {
       case Type.REG:
-        const loginData: PlayerRequest = JSON.parse(request.data);
-
+        const loginData = requestRawData as PlayerRequest;
         const playerDataResponse = players.handlePlayerLogin(loginData);
 
         const response: commonRequestResponse = {
@@ -75,24 +76,64 @@ wss.on("connection", (ws) => {
           ws.send(JSON.stringify(response));
         }
 
-        // console.log(
-        //   `Online users: `,
-        //   playersOnline.getAllOnlinePlayers().length,
-        //   playersOnline.getAllOnlinePlayers(),
-        // );
         break;
 
       case Type.CREATE_ROOM:
-        ws.send(
-          JSON.stringify({
-            type: "add_user_to_room",
-            data: JSON.stringify({
-              indexRoom: 6546544,
-            }),
+        const currentPlayer = playersOnline.findOnlinePlayerByWs(ws);
+        if (currentPlayer) {
+          rooms.createRoomWithPlayer(currentPlayer.player);
+        }
+        playersOnline.getAllOnlinePlayers().forEach((item) => {
+          const resp = JSON.stringify({
+            type: Type.UPDATE_ROOM,
+            data: JSON.stringify(rooms.getAllRooms()),
             id: 0,
-          }),
-        );
+          });
+          item.webSocket.send(resp);
+        });
 
+        break;
+
+      case Type.ADD_USER_TO_ROOM:
+        const { indexRoom } = requestRawData as { indexRoom: number };
+
+        const currPlayer = playersOnline.findOnlinePlayerByWs(ws)!.player;
+
+        const currentRoom = rooms.findRoomByIndex(indexRoom);
+
+        const isPlayerAdd = rooms.addPlayerToRoom(currentRoom!, currPlayer);
+        if (!isPlayerAdd) {
+          break;
+        }
+        playersOnline.getAllOnlinePlayers().forEach((item) => {
+          const resp = JSON.stringify({
+            type: Type.UPDATE_ROOM,
+            data: JSON.stringify(rooms.getAllRooms()),
+            id: 0,
+          });
+          item.webSocket.send(resp);
+        });
+
+        const gameIndex = generateNumberId();
+
+        currentRoom?.roomUsers.forEach((item) => {
+          const player = playersOnline.findOnlinePlayerById(item.index);
+
+          player?.webSocket.send(
+            JSON.stringify({
+              type: Type.CREATE_GAME,
+              data: JSON.stringify({
+                idGame: gameIndex,
+                idPlayer: item.index,
+              }),
+              id: 0,
+            }),
+          );
+        });
+
+        break;
+
+      case Type.ADD_SHIPS:
         break;
 
       default:
@@ -103,7 +144,7 @@ wss.on("connection", (ws) => {
   ws.on("error", console.error);
 
   ws.on("close", () => {
-    const result = findWebSocket(playersOnline.getAllOnlinePlayers(), ws);
+    const result = playersOnline.findOnlinePlayerByWs(ws);
     if (result) {
       playersOnline.deleteOnlinePlayer(result);
       console.log(
@@ -113,10 +154,5 @@ wss.on("connection", (ws) => {
       ws.close();
       console.log(`Websocket disconnected`);
     }
-    // console.log(
-    //   "Open socket number: ",
-    //   playersOnline.getAllOnlinePlayers().length,
-    //   playersOnline.getAllOnlinePlayers(),
-    // );
   });
 });

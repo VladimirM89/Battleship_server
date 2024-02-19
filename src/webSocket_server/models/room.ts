@@ -1,4 +1,4 @@
-interface PlayerInRoom {
+export interface PlayerInRoom {
   name: string;
   index: number;
 }

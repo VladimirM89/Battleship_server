@@ -1,5 +1,4 @@
 /* eslint-disable import/no-cycle */
-/* eslint-disable class-methods-use-this */
 import { playersOnline } from "..";
 import { INCORRECT_PLAYER_PASSWORD_TEXT, PLAYER_ONLINE_TEXT } from "../constants/constants";
 import { PlayerInDB, PlayerRequest, PlayerResponse } from "../models/player";
@@ -9,20 +8,7 @@ class Players {
   private players: Array<PlayerInDB>;
 
   constructor() {
-    this.players = [
-      {
-        index: 476,
-        name: "testWins5",
-        password: "sdhvsgdv",
-        wins: 5,
-      },
-      {
-        index: 47655,
-        name: "testWins1",
-        password: "sdhvsgdv4",
-        wins: 1,
-      },
-    ];
+    this.players = [];
   }
 
   public getAllPlayers() {
@@ -41,13 +27,6 @@ class Players {
   public findPlayer(data: PlayerRequest): PlayerInDB | null {
     const result = this.players.find((player) => player.name === data.name);
     return result || null;
-  }
-
-  private isPlayerOnline(data: PlayerRequest): boolean {
-    const onlinePlayer = playersOnline
-      .getAllOnlinePlayers()
-      .find((item) => item.player.name === data.name);
-    return !!onlinePlayer;
   }
 
   public handlePlayerLogin(data: PlayerRequest): PlayerResponse {
@@ -81,7 +60,7 @@ class Players {
       return { ...playerResponse, error: true, errorText: INCORRECT_PLAYER_PASSWORD_TEXT };
     }
 
-    if (this.isPlayerOnline(data)) {
+    if (playersOnline.isPlayerOnline(data)) {
       return { ...playerResponse, error: true, errorText: PLAYER_ONLINE_TEXT };
     }
 
