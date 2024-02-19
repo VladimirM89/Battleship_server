@@ -49,12 +49,9 @@ class RoomService {
 
   private deleteAllRoomsWithPlayer(players: Array<PlayerInRoom>) {
     players.forEach((player) => {
-      console.log("PLAYER: ", player.name, player.index);
       const { index } = player;
       this.rooms.forEach((room) => {
-        console.log("ROOM: ", room.roomUsers);
         if (room.roomUsers[0].index === index || room.roomUsers[1]?.index === index) {
-          console.log("ROOM DELETE: ", room);
           this.deleteRoom(room);
         }
       });
