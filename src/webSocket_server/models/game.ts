@@ -1,3 +1,4 @@
+import { WebSocket } from "ws";
 import { ShotStatus } from "../constants/enums/webSocket";
 import { Ship } from "./room";
 
@@ -38,4 +39,16 @@ export interface PlayerTurnResponse {
 
 export interface FinishResponse {
   winPlayer: number;
+}
+
+export interface GamePlayer {
+  indexPlayer: number;
+  webSocket: WebSocket;
+  ships: Array<Ship>;
+}
+
+export interface Game {
+  gameId: number;
+  players: Array<GamePlayer>;
+  // currentPlayer?: number;
 }

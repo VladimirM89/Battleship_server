@@ -1,7 +1,10 @@
-/* eslint-disable class-methods-use-this */
+/* eslint-disable import/no-cycle */
+import { Type } from "../constants/enums/webSocket";
+import commonRequestResponse from "../models/commonRequestResponse";
 import { PlayerInDB } from "../models/player";
 import { PlayerInRoom, UpdateRoomsResponse } from "../models/room";
 import generateNumberId from "../utils/generateNumberId";
+import { sendToAll } from "../utils/sendResponse";
 
 class RoomService {
   private rooms: Array<UpdateRoomsResponse>;
@@ -60,6 +63,15 @@ class RoomService {
 
   public findRoomByIndex(index: number): UpdateRoomsResponse | null {
     return this.rooms.find((room) => room.roomId === index) || null;
+  }
+
+  public updateRooms() {
+    const updateRoomsResponse: commonRequestResponse = {
+      type: Type.UPDATE_ROOM,
+      data: JSON.stringify(this.rooms),
+      id: 0,
+    };
+    sendToAll(updateRoomsResponse);
   }
 }
 
