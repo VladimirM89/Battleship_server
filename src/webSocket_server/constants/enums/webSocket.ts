@@ -14,14 +14,14 @@ export enum Type {
 }
 
 export enum ShipType {
-  SMALL = "small",
-  MEDIUM = "medium",
-  LARGE = "large",
-  HUGE = "huge",
+  small = "small",
+  medium = "medium",
+  large = "large",
+  huge = "huge",
 }
 
 export enum ShotStatus {
-  MISS = "miss",
-  KILLED = "killed",
-  SHOT = "shot",
+  miss = "miss",
+  killed = "killed",
+  shot = "shot",
 }

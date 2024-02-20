@@ -121,16 +121,16 @@ class GameService {
     const player = gamePlayers.find((item) => item.indexPlayer === indexPlayer);
     const enemy = gamePlayers.find((item) => item.indexPlayer !== indexPlayer);
 
-    if (player && enemy) {
+    if (enemy) {
       enemy.ships.forEach((ship) => {
         if (x === ship.position.x || y === ship.position.y) {
-          this.sendAttackFeedback(ShotStatus.SHOT, x, y);
+          this.sendAttackFeedback(ShotStatus.shot, x, y);
         }
       });
     }
   }
 
-  public sendAttackFeedback(status: string, x: number, y: number) {
+  public sendAttackFeedback(status: keyof typeof ShotStatus, x: number, y: number) {
     this.game.players.forEach((item) => {
       const responseData: AttackFeedbackResponse = {
         position: { x, y },
@@ -144,7 +144,7 @@ class GameService {
       };
       item.webSocket.send(JSON.stringify(turnPlayerResponse));
     });
-    if (status === ShotStatus.MISS) {
+    if (status === ShotStatus.miss) {
       this.changePlayer();
     }
   }
