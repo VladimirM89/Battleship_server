@@ -21,7 +21,7 @@ export interface Ship {
   };
   direction: boolean;
   length: number;
-  type: keyof typeof ShipType;
+  type: ShipType;
 }
 
 export interface AddShipsRequest {

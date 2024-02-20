@@ -1,5 +1,4 @@
 import { WebSocket } from "ws";
-import { ShotStatus } from "../constants/enums/webSocket";
 import { Ship } from "./room";
 
 export interface CreateGameResponse {
@@ -19,13 +18,13 @@ export interface AttackRequest {
   indexPlayer: number;
 }
 
-export interface AttackResponse {
+export interface AttackFeedbackResponse {
   position: {
     x: number;
     y: number;
   };
   currentPlayer: number;
-  status: keyof typeof ShotStatus;
+  status: string;
 }
 
 export interface RandomAttackRequest {
@@ -50,5 +49,4 @@ export interface GamePlayer {
 export interface Game {
   gameId: number;
   players: Array<GamePlayer>;
-  // currentPlayer?: number;
 }

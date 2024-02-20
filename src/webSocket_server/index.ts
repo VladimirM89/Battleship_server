@@ -13,6 +13,7 @@ import { LoginRequest } from "./models/registration";
 import { AddPlayerToRoomRequest, AddShipsRequest } from "./models/room";
 import { OnlinePlayer } from "./models/player";
 import GameService from "./services/GameService";
+import { AttackRequest } from "./models/game";
 
 const wss = new WebSocketServer({ port: WEBSOCKET_PORT, host: WEBSOCKET_HOST });
 console.log(`${WEBSOCKET_START_TEXT} ${WEBSOCKET_HOST}: ${WEBSOCKET_PORT}`);
@@ -28,7 +29,7 @@ const game = new GameService();
 wss.on("connection", (ws) => {
   ws.on("message", function message(rawData) {
     const request: commonRequestResponse = JSON.parse(rawData.toString());
-    console.log("received: ", request);
+    // console.log("received: ", request);
 
     const requestRawData: unknown = request.data.length ? JSON.parse(request.data) : request.data;
 
@@ -90,13 +91,13 @@ wss.on("connection", (ws) => {
       case Type.ADD_USER_TO_ROOM:
         {
           const { indexRoom } = requestRawData as AddPlayerToRoomRequest;
-          const currentRoom = rooms.findRoomByIndex(indexRoom);
-          const currPlayer = playersOnline.findOnlinePlayerByWs(ws)!.player;
-          const isPlayerAddedInRoom = rooms.addPlayerToRoom(currentRoom!, currPlayer);
-          if (!isPlayerAddedInRoom) {
+          const roomToAddNewPlayer = rooms.findRoomByIndex(indexRoom);
+          const newPlayer = playersOnline.findOnlinePlayerByWs(ws)!.player;
+          const isPlayerAlreadyInRoom = rooms.addPlayerToRoom(roomToAddNewPlayer!, newPlayer);
+          if (!isPlayerAlreadyInRoom) {
             break;
           }
-          currentRoom?.roomUsers.forEach((item) => {
+          roomToAddNewPlayer?.roomUsers.forEach((item) => {
             const playerInRoom = playersOnline.findOnlinePlayerById(item.index);
             if (playerInRoom) {
               game.addPlayerToGame({
@@ -121,6 +122,13 @@ wss.on("connection", (ws) => {
 
         break;
 
+      case Type.ATTACK:
+        {
+          const attackRequest = requestRawData as AttackRequest;
+          game.receiveAttack(attackRequest);
+        }
+        break;
+
       default:
         break;
     }
@@ -137,6 +145,7 @@ wss.on("connection", (ws) => {
       );
     } else {
       ws.close();
+      // TODO: clear game room or delete room with player witch disconnected. game should be array
       console.log(`Websocket disconnected`);
     }
   });
