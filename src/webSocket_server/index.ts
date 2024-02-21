@@ -29,7 +29,7 @@ const game = new GameService();
 wss.on("connection", (ws) => {
   ws.on("message", function message(rawData) {
     const request: commonRequestResponse = JSON.parse(rawData.toString());
-    // console.log("received: ", request);
+    console.log("received: ", request);
 
     const requestRawData: unknown = request.data.length ? JSON.parse(request.data) : request.data;
 
@@ -94,20 +94,24 @@ wss.on("connection", (ws) => {
           const roomToAddNewPlayer = rooms.findRoomByIndex(indexRoom);
           const newPlayer = playersOnline.findOnlinePlayerByWs(ws)!.player;
           const isPlayerAlreadyInRoom = rooms.addPlayerToRoom(roomToAddNewPlayer!, newPlayer);
+
           if (!isPlayerAlreadyInRoom) {
             break;
           }
           roomToAddNewPlayer?.roomUsers.forEach((item) => {
             const playerInRoom = playersOnline.findOnlinePlayerById(item.index);
             if (playerInRoom) {
-              game.addPlayerToGame({
-                indexPlayer: playerInRoom.player.index,
-                webSocket: playerInRoom.webSocket,
-              });
+              game.addPlayerToGame(
+                {
+                  indexPlayer: playerInRoom.player.index,
+                  webSocket: playerInRoom.webSocket,
+                },
+                indexRoom,
+              );
             }
           });
 
-          game.createGame();
+          game.sendCreateGame(indexRoom);
           rooms.updateRooms();
         }
 
@@ -117,7 +121,7 @@ wss.on("connection", (ws) => {
         {
           const requestData = requestRawData as AddShipsRequest;
           game.addShipsToPlayers(requestData);
-          game.startGame();
+          game.startGame(requestData.gameId);
         }
 
         break;
@@ -145,7 +149,7 @@ wss.on("connection", (ws) => {
       );
     } else {
       ws.close();
-      // TODO: clear game room or delete room with player witch disconnected. game should be array
+      // TODO: clear game room or delete room with player witch disconnected
       console.log(`Websocket disconnected`);
     }
   });

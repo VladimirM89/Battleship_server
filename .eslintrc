@@ -39,7 +39,8 @@
         "prettier/prettier": "error",
         "import/extensions": "off",
         "no-console": "warn",
-        "no-shadow": "off"
+        "no-shadow": "off",
+        "class-methods-use-this": "off"
     },
     "ignorePatterns": ["src/http_server/index.ts", "dist"]
 }
