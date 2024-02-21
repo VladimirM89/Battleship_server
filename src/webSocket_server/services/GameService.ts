@@ -1,6 +1,6 @@
 /* eslint-disable import/no-cycle */
 import { playersOnline } from "..";
-import { ShipType, ShotStatus, Type } from "../constants/enums/webSocket";
+import { ShotStatus, Type } from "../constants/enums/webSocket";
 import commonRequestResponse from "../models/commonRequestResponse";
 import {
   AttackFeedbackResponse,
@@ -12,9 +12,9 @@ import {
   StartGameResponse,
 } from "../models/game";
 import { AddShipsRequest } from "../models/room";
+import checkShot from "../utils/checkShot";
 
 class GameService {
-  // private game: Game;
   private games: Array<Game>;
 
   private currentPlayerIndex: number;
@@ -108,12 +108,14 @@ class GameService {
     }
   }
 
-  private changePlayerInGame(gameId: number) {
+  private changePlayerInGame(gameId: number, isChange = true) {
     const game = this.findGameById(gameId);
-    if (this.currentPlayerIndex === 0) {
-      this.currentPlayerIndex = 1;
-    } else {
-      this.currentPlayerIndex = 0;
+    if (isChange) {
+      if (this.currentPlayerIndex === 0) {
+        this.currentPlayerIndex = 1;
+      } else {
+        this.currentPlayerIndex = 0;
+      }
     }
 
     game?.players.forEach((item) => {
@@ -129,11 +131,6 @@ class GameService {
     });
   }
 
-  // direction: false = horizontal
-  // direction: true = vertical
-  // x: 0 - 9 from left to right
-  // y: 0- 9 from top to bottom
-
   public receiveAttack(attackRequest: AttackRequest) {
     const { gameId, x, y, indexPlayer } = attackRequest;
 
@@ -147,23 +144,22 @@ class GameService {
 
       // const player = gamePlayers.find((item) => item.indexPlayer === indexPlayer);
       const enemy = gamePlayers.find((item) => item.indexPlayer !== indexPlayer);
-      let status: keyof typeof ShotStatus = ShotStatus.miss;
 
       if (enemy) {
         console.log("X=", x, "Y=", y);
-        enemy.ships.forEach((ship) => {
-          if (x === ship.position.x && y === ship.position.y) {
-            if (ship.type === ShipType.small) {
-              status = ShotStatus.killed;
-            } else {
-              status = ShotStatus.shot;
-            }
-            console.log("SHIP: ", ship);
-
-            this.sendAttackFeedback(game, status, x, y);
-          }
+        const targetShip = enemy.ships.find((ship) => {
+          const isShotInShip = checkShot(ship, x, y);
+          // console.log("isShotInShip ", isShotInShip);
+          return isShotInShip;
         });
-        this.changePlayerInGame(gameId);
+        console.log("a ship that's been shot: ", targetShip);
+        if (targetShip) {
+          this.sendAttackFeedback(game, ShotStatus.shot, x, y);
+          this.changePlayerInGame(gameId, false);
+        } else {
+          this.sendAttackFeedback(game, ShotStatus.miss, x, y);
+          this.changePlayerInGame(gameId, true);
+        }
       }
     }
   }

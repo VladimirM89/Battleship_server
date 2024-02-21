@@ -138,7 +138,10 @@ wss.on("connection", (ws) => {
     }
   });
 
-  ws.on("error", console.error);
+  ws.on("error", () => {
+    console.log("WS ERROR");
+    ws.close();
+  });
 
   ws.on("close", () => {
     const result = playersOnline.findOnlinePlayerByWs(ws);
