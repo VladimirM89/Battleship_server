@@ -22,7 +22,12 @@ export interface Ship {
   direction: boolean;
   length: number;
   type: keyof typeof ShipType;
+  health: number;
 }
+
+// export interface ShipHealth extends Ship {
+//   health: number;
+// }
 
 export interface AddShipsRequest {
   gameId: number;

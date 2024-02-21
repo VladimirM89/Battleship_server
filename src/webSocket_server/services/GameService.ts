@@ -1,3 +1,5 @@
+/* eslint-disable no-param-reassign */
+/* eslint-disable no-return-assign */
 /* eslint-disable import/no-cycle */
 import { playersOnline } from "..";
 import { ShotStatus, Type } from "../constants/enums/webSocket";
@@ -11,7 +13,7 @@ import {
   PlayerTurnResponse,
   StartGameResponse,
 } from "../models/game";
-import { AddShipsRequest } from "../models/room";
+import { AddShipsRequest, Ship } from "../models/room";
 import checkShot from "../utils/checkShot";
 
 class GameService {
@@ -92,6 +94,9 @@ class GameService {
       !!game.players[0].ships.length &&
       !!game.players[1].ships.length
     ) {
+      game.players.forEach((player) => {
+        player.ships.forEach((ship) => (ship.health = ship.length));
+      });
       game.players.forEach((item) => {
         const responseData: StartGameResponse = {
           ships: item.ships,
@@ -146,16 +151,24 @@ class GameService {
       const enemy = gamePlayers.find((item) => item.indexPlayer !== indexPlayer);
 
       if (enemy) {
-        console.log("X=", x, "Y=", y);
+        // console.log("X=", x, "Y=", y);
         const targetShip = enemy.ships.find((ship) => {
           const isShotInShip = checkShot(ship, x, y);
-          // console.log("isShotInShip ", isShotInShip);
+          console.log("isShotInShip ", isShotInShip);
           return isShotInShip;
         });
-        console.log("a ship that's been shot: ", targetShip);
+        // console.log("a ship that's been shot: ", targetShip);
         if (targetShip) {
-          this.sendAttackFeedback(game, ShotStatus.shot, x, y);
-          this.changePlayerInGame(gameId, false);
+          targetShip.health -= 1;
+          if (targetShip.health === 0) {
+            // this.sendAttackFeedback(game, ShotStatus.killed, x, y);
+            // TODO: send shots type miss around killed ship
+            this.handleKillShip(game, targetShip);
+            this.changePlayerInGame(gameId, false);
+          } else {
+            this.sendAttackFeedback(game, ShotStatus.shot, x, y);
+            this.changePlayerInGame(gameId, false);
+          }
         } else {
           this.sendAttackFeedback(game, ShotStatus.miss, x, y);
           this.changePlayerInGame(gameId, true);
@@ -178,6 +191,24 @@ class GameService {
       };
       item.webSocket.send(JSON.stringify(turnPlayerResponse));
     });
+  }
+
+  private handleKillShip(game: Game, ship: Ship) {
+    const { direction, position, length } = ship;
+
+    // console.log("SHIP: ", ship);
+
+    if (direction) {
+      for (let i = position.y; i <= position.y + (length - 1); i += 1) {
+        // console.log("DIRECTION: ", direction, "X = ", position.x, "Y = ", i);
+        this.sendAttackFeedback(game, ShotStatus.killed, position.x, i);
+      }
+    } else {
+      for (let i = position.x; i <= position.x + (length - 1); i += 1) {
+        // console.log("DIRECTION: ", direction, "X = ", i, "Y = ", position.y);
+        this.sendAttackFeedback(game, ShotStatus.killed, i, position.y);
+      }
+    }
   }
 
   private finishGame(gameId: number) {
