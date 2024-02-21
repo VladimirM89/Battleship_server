@@ -13,7 +13,7 @@ import { LoginRequest } from "./models/registration";
 import { AddPlayerToRoomRequest, AddShipsRequest } from "./models/room";
 import { OnlinePlayer } from "./models/player";
 import GameService from "./services/GameService";
-import { AttackRequest } from "./models/game";
+import { AttackRequest, RandomAttackRequest } from "./models/game";
 
 const wss = new WebSocketServer({ port: WEBSOCKET_PORT, host: WEBSOCKET_HOST });
 console.log(`${WEBSOCKET_START_TEXT} ${WEBSOCKET_HOST}: ${WEBSOCKET_PORT}`);
@@ -133,6 +133,13 @@ wss.on("connection", (ws) => {
         }
         break;
 
+      case Type.RANDOM_ATTACK:
+        {
+          const randomAttackRequest = requestRawData as RandomAttackRequest;
+          game.handleRandomAttack(randomAttackRequest);
+        }
+        break;
+
       default:
         break;
     }
@@ -147,6 +154,7 @@ wss.on("connection", (ws) => {
     const result = playersOnline.findOnlinePlayerByWs(ws);
     if (result) {
       playersOnline.deleteOnlinePlayer(result);
+
       console.log(
         `Player '${result.player.name}' is offline. Websocket id=${result.id} disconnected`,
       );

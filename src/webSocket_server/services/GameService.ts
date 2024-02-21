@@ -13,6 +13,7 @@ import {
   Game,
   GamePlayer,
   PlayerTurnResponse,
+  RandomAttackRequest,
   StartGameResponse,
 } from "../models/game";
 import { AddShipsRequest, Ship } from "../models/room";
@@ -234,6 +235,12 @@ class GameService {
         this.sendAttackFeedback(game, ShotStatus.miss, item);
       }
     });
+  }
+
+  // TODO: create random shot
+  public handleRandomAttack(request: RandomAttackRequest) {
+    const { gameId, indexPlayer } = request;
+    this.receiveAttack({ gameId, indexPlayer, x: 5, y: 5 });
   }
 
   private finishGame(game: Game) {
