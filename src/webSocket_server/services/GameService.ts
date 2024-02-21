@@ -9,6 +9,7 @@ import {
   AttackRequest,
   Coordinates,
   CreateGameResponse,
+  FinishResponse,
   Game,
   GamePlayer,
   PlayerTurnResponse,
@@ -16,6 +17,7 @@ import {
 } from "../models/game";
 import { AddShipsRequest, Ship } from "../models/room";
 import checkShot from "../utils/checkShot";
+import { sendToAll } from "../utils/sendResponse";
 
 class GameService {
   private games: Array<Game>;
@@ -148,23 +150,19 @@ class GameService {
         return;
       }
 
-      // const player = gamePlayers.find((item) => item.indexPlayer === indexPlayer);
       const enemy = gamePlayers.find((item) => item.indexPlayer !== indexPlayer);
 
       if (enemy) {
-        // console.log("X=", x, "Y=", y);
         const targetShip = enemy.ships.find((ship) => {
           const isShotInShip = checkShot(ship, x, y);
-          console.log("isShotInShip ", isShotInShip);
           return isShotInShip;
         });
-        // console.log("a ship that's been shot: ", targetShip);
         if (targetShip) {
           targetShip.health -= 1;
           if (targetShip.health === 0) {
-            // this.sendAttackFeedback(game, ShotStatus.killed, x, y);
             this.handleKillShip(game, targetShip);
             this.handleCellAroundKilledShip(game, targetShip);
+            this.finishGame(game);
             this.changePlayerInGame(gameId, false);
           } else {
             this.sendAttackFeedback(game, ShotStatus.shot, { x, y });
@@ -198,16 +196,12 @@ class GameService {
   private handleKillShip(game: Game, ship: Ship) {
     const { direction, position, length } = ship;
 
-    // console.log("SHIP: ", ship);
-
     if (direction) {
       for (let i = position.y; i <= position.y + (length - 1); i += 1) {
-        // console.log("DIRECTION: ", direction, "X = ", position.x, "Y = ", i);
         this.sendAttackFeedback(game, ShotStatus.killed, { x: position.x, y: i });
       }
     } else {
       for (let i = position.x; i <= position.x + (length - 1); i += 1) {
-        // console.log("DIRECTION: ", direction, "X = ", i, "Y = ", position.y);
         this.sendAttackFeedback(game, ShotStatus.killed, { x: i, y: position.y });
       }
     }
@@ -242,14 +236,22 @@ class GameService {
     });
   }
 
-  private finishGame(gameId: number) {
-    // TODO: delete game room after finish
-    const game = this.findGameById(gameId);
-    if (game) {
+  private finishGame(game: Game) {
+    const looser = game.players.find((item) => item.ships.every((ship) => ship.health === 0));
+
+    if (looser) {
+      const winner = game.players.find((item) => item.indexPlayer !== looser.indexPlayer);
+
+      const finishResponse: FinishResponse = {
+        winPlayer: winner!.indexPlayer,
+      };
+
+      sendToAll({ type: Type.FINISH, data: JSON.stringify(finishResponse), id: 0 });
+      // TODO: increase number of player's win, update player
       const index = this.games.indexOf(game);
       this.games.splice(index, 1);
     }
-    console.log("Game finished");
+
     console.log("Update Winners");
   }
 }
