@@ -1,8 +1,7 @@
 /* eslint-disable no-param-reassign */
 /* eslint-disable no-return-assign */
-/* eslint-disable import/no-cycle */
-import { playersOnline } from "..";
 import { ShotStatus, Type } from "../constants/enums/webSocket";
+import playersOnline from "../db/playersOnline";
 import commonRequestResponse from "../models/commonRequestResponse";
 import {
   AttackFeedbackResponse,

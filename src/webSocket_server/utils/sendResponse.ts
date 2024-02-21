@@ -1,5 +1,4 @@
-/* eslint-disable import/no-cycle */
-import { playersOnline } from "..";
+import playersOnline from "../db/playersOnline";
 import commonRequestResponse from "../models/commonRequestResponse";
 
 export function sendToAll(response: commonRequestResponse) {

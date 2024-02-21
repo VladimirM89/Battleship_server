@@ -1,12 +1,9 @@
-/* eslint-disable import/no-cycle */
 /* eslint-disable import/prefer-default-export */
 import { WebSocketServer } from "ws";
 import { WEBSOCKET_HOST, WEBSOCKET_PORT } from "./constants/webSocketConstants";
 import { WEBSOCKET_START_TEXT } from "./constants/constants";
 import { Type } from "./constants/enums/webSocket";
 import commonRequestResponse from "./models/commonRequestResponse";
-import Players from "./db/players";
-import OnlinePlayers from "./db/onlinePlayers";
 import generateStringId from "./utils/generateStringId";
 import RoomService from "./services/RoomService";
 import { LoginRequest } from "./models/registration";
@@ -14,13 +11,11 @@ import { AddPlayerToRoomRequest, AddShipsRequest } from "./models/room";
 import { OnlinePlayer } from "./models/player";
 import GameService from "./services/GameService";
 import { AttackRequest, RandomAttackRequest } from "./models/game";
+import playersOnline from "./db/playersOnline";
+import players from "./db/players";
 
 const wss = new WebSocketServer({ port: WEBSOCKET_PORT, host: WEBSOCKET_HOST });
 console.log(`${WEBSOCKET_START_TEXT} ${WEBSOCKET_HOST}: ${WEBSOCKET_PORT}`);
-
-export const playersOnline = new OnlinePlayers();
-
-const players = new Players();
 
 const rooms = new RoomService();
 
