@@ -7,6 +7,7 @@ import commonRequestResponse from "../models/commonRequestResponse";
 import {
   AttackFeedbackResponse,
   AttackRequest,
+  Coordinates,
   CreateGameResponse,
   Game,
   GamePlayer,
@@ -162,22 +163,23 @@ class GameService {
           targetShip.health -= 1;
           if (targetShip.health === 0) {
             // this.sendAttackFeedback(game, ShotStatus.killed, x, y);
-            // TODO: send shots type miss around killed ship
             this.handleKillShip(game, targetShip);
+            this.handleCellAroundKilledShip(game, targetShip);
             this.changePlayerInGame(gameId, false);
           } else {
-            this.sendAttackFeedback(game, ShotStatus.shot, x, y);
+            this.sendAttackFeedback(game, ShotStatus.shot, { x, y });
             this.changePlayerInGame(gameId, false);
           }
         } else {
-          this.sendAttackFeedback(game, ShotStatus.miss, x, y);
+          this.sendAttackFeedback(game, ShotStatus.miss, { x, y });
           this.changePlayerInGame(gameId, true);
         }
       }
     }
   }
 
-  public sendAttackFeedback(game: Game, status: keyof typeof ShotStatus, x: number, y: number) {
+  public sendAttackFeedback(game: Game, status: keyof typeof ShotStatus, coordinates: Coordinates) {
+    const { x, y } = coordinates;
     game.players.forEach((item) => {
       const responseData: AttackFeedbackResponse = {
         position: { x, y },
@@ -201,14 +203,43 @@ class GameService {
     if (direction) {
       for (let i = position.y; i <= position.y + (length - 1); i += 1) {
         // console.log("DIRECTION: ", direction, "X = ", position.x, "Y = ", i);
-        this.sendAttackFeedback(game, ShotStatus.killed, position.x, i);
+        this.sendAttackFeedback(game, ShotStatus.killed, { x: position.x, y: i });
       }
     } else {
       for (let i = position.x; i <= position.x + (length - 1); i += 1) {
         // console.log("DIRECTION: ", direction, "X = ", i, "Y = ", position.y);
-        this.sendAttackFeedback(game, ShotStatus.killed, i, position.y);
+        this.sendAttackFeedback(game, ShotStatus.killed, { x: i, y: position.y });
       }
     }
+  }
+
+  private handleCellAroundKilledShip(game: Game, ship: Ship) {
+    const { direction, position, length } = ship;
+    const coordinates: Array<Coordinates> = [];
+
+    if (direction) {
+      for (let y = position.y - 1; y <= position.y + length; y += 1) {
+        coordinates.push({ x: position.x - 1, y }, { x: position.x + 1, y });
+      }
+      coordinates.push(
+        { x: position.x, y: position.y - 1 },
+        { x: position.x, y: position.y + length },
+      );
+    } else {
+      for (let x = position.x - 1; x <= position.x + length; x += 1) {
+        coordinates.push({ x, y: position.y - 1 }, { x, y: position.y + 1 });
+      }
+      coordinates.push(
+        { x: position.x - 1, y: position.y },
+        { x: position.x + length, y: position.y },
+      );
+    }
+
+    coordinates.forEach((item) => {
+      if (item.x >= 0 && item.x <= 9 && item.y >= 0 && item.y <= 9) {
+        this.sendAttackFeedback(game, ShotStatus.miss, item);
+      }
+    });
   }
 
   private finishGame(gameId: number) {

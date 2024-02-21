@@ -19,11 +19,13 @@ export interface AttackRequest {
   indexPlayer: number;
 }
 
+export interface Coordinates {
+  x: number;
+  y: number;
+}
+
 export interface AttackFeedbackResponse {
-  position: {
-    x: number;
-    y: number;
-  };
+  position: Coordinates;
   currentPlayer: number;
   status: keyof typeof ShotStatus;
 }
