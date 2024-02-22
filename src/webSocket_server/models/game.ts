@@ -47,6 +47,7 @@ export interface GamePlayer {
   indexPlayer: number;
   webSocket: WebSocket;
   ships: Array<Ship>;
+  shots?: Array<Coordinates>;
 }
 
 export interface Game {

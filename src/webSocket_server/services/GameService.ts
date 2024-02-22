@@ -73,6 +73,7 @@ class GameService {
         indexPlayer: player.player.index,
         ships: [],
         webSocket: player.webSocket,
+        shots: [],
       };
       game.players.push(playerInGame);
     }
@@ -178,6 +179,14 @@ class GameService {
 
   public sendAttackFeedback(game: Game, status: keyof typeof ShotStatus, coordinates: Coordinates) {
     const { x, y } = coordinates;
+
+    if (!this.isShotExist(game, coordinates)) {
+      // console.log("COORDINATES: ", coordinates);
+      game.players[this.currentPlayerIndex].shots?.push(coordinates);
+      // console.log("ARRAY OF SHOTS: ", game.players[this.currentPlayerIndex].shots);
+      // console.log("ARRAY LENGTH OF SHOTS: ", game.players[this.currentPlayerIndex].shots?.length);
+    }
+
     game.players.forEach((item) => {
       const responseData: AttackFeedbackResponse = {
         position: { x, y },
@@ -231,9 +240,18 @@ class GameService {
 
     coordinates.forEach((item) => {
       if (item.x >= 0 && item.x <= 9 && item.y >= 0 && item.y <= 9) {
-        this.sendAttackFeedback(game, ShotStatus.miss, item);
+        const isShotExist = this.isShotExist(game, { x: item.x, y: item.y });
+        if (!isShotExist) {
+          this.sendAttackFeedback(game, ShotStatus.miss, item);
+        }
       }
     });
+  }
+
+  private isShotExist(game: Game, coordinates: Coordinates): boolean {
+    const { shots } = game.players[this.currentPlayerIndex];
+    const result = shots?.find((item) => item.x === coordinates.x && item.y === coordinates.y);
+    return !!result;
   }
 
   // TODO: create random shot
@@ -257,8 +275,6 @@ class GameService {
       const index = this.games.indexOf(game);
       this.games.splice(index, 1);
     }
-
-    console.log("Update Winners");
   }
 }
 
