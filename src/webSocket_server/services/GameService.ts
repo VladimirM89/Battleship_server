@@ -254,10 +254,23 @@ class GameService {
     return !!result;
   }
 
-  // TODO: create random shot
   public handleRandomAttack(request: RandomAttackRequest) {
     const { gameId, indexPlayer } = request;
-    this.receiveAttack({ gameId, indexPlayer, x: 5, y: 5 });
+    const game = this.games.find((item) => item.gameId === gameId);
+    const player = game?.players.find((item) => item.indexPlayer === indexPlayer);
+    const shotCoordinates = this.randomShot(player!.shots!);
+    this.receiveAttack({ gameId, indexPlayer, x: shotCoordinates.x, y: shotCoordinates.y });
+  }
+
+  private randomShot(shots: Array<Coordinates>): Coordinates {
+    const randomX = Math.floor(Math.random() * 10);
+    const randomY = Math.floor(Math.random() * 10);
+    const isShotExist = shots.find((item) => item.x === randomX && item.y === randomY);
+
+    if (!isShotExist) {
+      return { x: randomX, y: randomY };
+    }
+    return this.randomShot(shots);
   }
 
   private finishGame(game: Game) {
