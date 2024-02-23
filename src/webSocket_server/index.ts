@@ -59,13 +59,15 @@ wss.on("connection", (ws) => {
 
             rooms.updateRooms();
 
-            ws.send(
-              JSON.stringify({
-                type: Type.UPDATE_WINNERS,
-                data: JSON.stringify(players.getPlayersWithWins()),
-                id: 0,
-              }),
-            );
+            // ws.send(
+            //   JSON.stringify({
+            //     type: Type.UPDATE_WINNERS,
+            //     data: JSON.stringify(players.getPlayersWithWins()),
+            //     id: 0,
+            //   }),
+            // );
+
+            players.updateWinners();
           } else {
             ws.send(JSON.stringify(response));
           }

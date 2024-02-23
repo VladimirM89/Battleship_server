@@ -1,8 +1,11 @@
 import { INCORRECT_PLAYER_PASSWORD_TEXT, PLAYER_ONLINE_TEXT } from "../constants/constants";
+import { Type } from "../constants/enums/webSocket";
 import playersOnline from "../db/playersOnline";
+import commonRequestResponse from "../models/commonRequestResponse";
 import { PlayerInDB, UpdateWinnersResponse } from "../models/player";
 import { LoginRequest, LoginResponse } from "../models/registration";
 import generateNumberId from "../utils/generateNumberId";
+import { sendToAll } from "../utils/sendResponse";
 
 class Players {
   private players: Array<PlayerInDB>;
@@ -67,7 +70,24 @@ class Players {
     return playerResponse;
   }
 
-  public getPlayersWithWins(): Array<UpdateWinnersResponse> {
+  public addPlayerWin(playerId: number) {
+    const player = this.players.find((item) => item.index === playerId);
+    if (player) {
+      player.wins += 1;
+    }
+  }
+
+  public updateWinners(): void {
+    const updateWinnersResponse: commonRequestResponse = {
+      type: Type.UPDATE_WINNERS,
+      data: JSON.stringify(this.getPlayersWithWins()),
+      id: 0,
+    };
+
+    sendToAll(updateWinnersResponse);
+  }
+
+  private getPlayersWithWins(): Array<UpdateWinnersResponse> {
     const players = this.players.filter((player) => player.wins > 0);
     const result = players.map(({ name, wins }) => {
       return { name, wins };

@@ -1,6 +1,7 @@
 /* eslint-disable no-param-reassign */
 /* eslint-disable no-return-assign */
 import { ShotStatus, Type } from "../constants/enums/webSocket";
+import players from "../db/players";
 import playersOnline from "../db/playersOnline";
 import commonRequestResponse from "../models/commonRequestResponse";
 import {
@@ -17,7 +18,7 @@ import {
 } from "../models/game";
 import { AddShipsRequest, Ship } from "../models/room";
 import checkShot from "../utils/checkShot";
-import { sendToAll } from "../utils/sendResponse";
+import { sendInRoom } from "../utils/sendResponse";
 
 class GameService {
   private games: Array<Game>;
@@ -283,10 +284,17 @@ class GameService {
         winPlayer: winner!.indexPlayer,
       };
 
-      sendToAll({ type: Type.FINISH, data: JSON.stringify(finishResponse), id: 0 });
-      // TODO: increase number of player's win, update player
+      const finishGameResponse: commonRequestResponse = {
+        type: Type.FINISH,
+        data: JSON.stringify(finishResponse),
+        id: 0,
+      };
+
+      players.addPlayerWin(winner!.indexPlayer);
+      sendInRoom([winner!.indexPlayer, looser.indexPlayer], finishGameResponse);
       const index = this.games.indexOf(game);
       this.games.splice(index, 1);
+      players.updateWinners();
     }
   }
 }
