@@ -53,4 +53,5 @@ export interface GamePlayer {
 export interface Game {
   gameId: number;
   players: Array<GamePlayer>;
+  currentPlayerIndex: number;
 }

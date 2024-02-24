@@ -23,15 +23,15 @@ import { sendInRoom } from "../utils/sendResponse";
 class GameService {
   private games: Array<Game>;
 
-  private currentPlayerIndex: number;
+  // private currentPlayerIndex: number;
 
   constructor() {
     this.games = [];
-    this.currentPlayerIndex = 0;
+    // this.currentPlayerIndex = 0;
   }
 
   private createGame(gameId: number) {
-    const game: Game = { gameId, players: [] };
+    const game: Game = { gameId, players: [], currentPlayerIndex: 0 };
     this.games.push(game);
     return game;
   }
@@ -105,7 +105,7 @@ class GameService {
       game.players.forEach((item) => {
         const responseData: StartGameResponse = {
           ships: item.ships,
-          currentPlayerIndex: this.currentPlayerIndex,
+          currentPlayerIndex: 0,
         };
         const startGameResponse: commonRequestResponse = {
           type: Type.START_GAME,
@@ -121,16 +121,16 @@ class GameService {
   private changePlayerInGame(gameId: number, isChange = true) {
     const game = this.findGameById(gameId);
     if (isChange) {
-      if (this.currentPlayerIndex === 0) {
-        this.currentPlayerIndex = 1;
+      if (game!.currentPlayerIndex === 0) {
+        game!.currentPlayerIndex = 1;
       } else {
-        this.currentPlayerIndex = 0;
+        game!.currentPlayerIndex = 0;
       }
     }
 
     game?.players.forEach((item) => {
       const responseData: PlayerTurnResponse = {
-        currentPlayer: game.players[this.currentPlayerIndex].indexPlayer,
+        currentPlayer: game.players[game!.currentPlayerIndex].indexPlayer,
       };
       const turnPlayerResponse: commonRequestResponse = {
         type: Type.TURN,
@@ -145,10 +145,16 @@ class GameService {
     const { gameId, x, y, indexPlayer } = attackRequest;
 
     const game = this.findGameById(gameId);
+
+    if (this.isShotExist(game!, { x, y })) {
+      this.changePlayerInGame(gameId, true);
+      return;
+    }
+
     if (game) {
       const gamePlayers = game.players;
 
-      if (indexPlayer !== gamePlayers[this.currentPlayerIndex].indexPlayer) {
+      if (indexPlayer !== gamePlayers[game.currentPlayerIndex].indexPlayer) {
         return;
       }
 
@@ -179,19 +185,12 @@ class GameService {
   }
 
   public sendAttackFeedback(game: Game, status: keyof typeof ShotStatus, coordinates: Coordinates) {
-    const { x, y } = coordinates;
-
-    if (!this.isShotExist(game, coordinates)) {
-      // console.log("COORDINATES: ", coordinates);
-      game.players[this.currentPlayerIndex].shots?.push(coordinates);
-      // console.log("ARRAY OF SHOTS: ", game.players[this.currentPlayerIndex].shots);
-      // console.log("ARRAY LENGTH OF SHOTS: ", game.players[this.currentPlayerIndex].shots?.length);
-    }
+    game.players[game.currentPlayerIndex].shots?.push(coordinates);
 
     game.players.forEach((item) => {
       const responseData: AttackFeedbackResponse = {
-        position: { x, y },
-        currentPlayer: game.players[this.currentPlayerIndex].indexPlayer,
+        position: coordinates,
+        currentPlayer: game.players[game.currentPlayerIndex].indexPlayer,
         status,
       };
       const turnPlayerResponse: commonRequestResponse = {
@@ -249,9 +248,9 @@ class GameService {
     });
   }
 
-  private isShotExist(game: Game, coordinates: Coordinates): boolean {
-    const { shots } = game.players[this.currentPlayerIndex];
-    const result = shots?.find((item) => item.x === coordinates.x && item.y === coordinates.y);
+  private isShotExist(game: Game, { x, y }: Coordinates): boolean {
+    const { shots } = game.players[game.currentPlayerIndex];
+    const result = shots?.find((item) => item.x === x && item.y === y);
     return !!result;
   }
 
