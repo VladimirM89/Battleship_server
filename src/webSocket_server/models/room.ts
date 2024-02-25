@@ -25,10 +25,6 @@ export interface Ship {
   health: number;
 }
 
-// export interface ShipHealth extends Ship {
-//   health: number;
-// }
-
 export interface AddShipsRequest {
   gameId: number;
   ships: Array<Ship>;

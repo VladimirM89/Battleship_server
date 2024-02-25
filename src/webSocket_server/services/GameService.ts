@@ -23,11 +23,8 @@ import { sendInRoom } from "../utils/sendResponse";
 class GameService {
   private games: Array<Game>;
 
-  // private currentPlayerIndex: number;
-
   constructor() {
     this.games = [];
-    // this.currentPlayerIndex = 0;
   }
 
   private createGame(gameId: number) {
@@ -273,27 +270,67 @@ class GameService {
     return this.randomShot(shots);
   }
 
+  private sendFinishGameResponse(winner: GamePlayer, looser?: GamePlayer) {
+    const finishResponse: FinishResponse = {
+      winPlayer: winner!.indexPlayer,
+    };
+
+    const finishGameResponse: commonRequestResponse = {
+      type: Type.FINISH,
+      data: JSON.stringify(finishResponse),
+      id: 0,
+    };
+
+    if (winner && looser) {
+      players.addPlayerWin(winner.indexPlayer);
+      sendInRoom([winner.indexPlayer, looser.indexPlayer], finishGameResponse);
+    } else {
+      players.addPlayerWin(winner.indexPlayer);
+      sendInRoom([winner.indexPlayer], finishGameResponse);
+    }
+  }
+
   private finishGame(game: Game) {
-    const looser = game.players.find((item) => item.ships.every((ship) => ship.health === 0));
+    if (game.players.length === 2) {
+      const looser = game.players.find((item) => item.ships.every((ship) => ship.health === 0));
 
-    if (looser) {
-      const winner = game.players.find((item) => item.indexPlayer !== looser.indexPlayer);
+      if (looser) {
+        const winner = game.players.find((item) => item.indexPlayer !== looser.indexPlayer);
 
-      const finishResponse: FinishResponse = {
-        winPlayer: winner!.indexPlayer,
-      };
+        this.sendFinishGameResponse(winner!, looser);
 
-      const finishGameResponse: commonRequestResponse = {
-        type: Type.FINISH,
-        data: JSON.stringify(finishResponse),
-        id: 0,
-      };
+        const index = this.games.indexOf(game);
+        this.games.splice(index, 1);
+        players.updateWinners();
+      }
+    } else if (game.players.length === 1) {
+      const winner = game.players[0];
 
-      players.addPlayerWin(winner!.indexPlayer);
-      sendInRoom([winner!.indexPlayer, looser.indexPlayer], finishGameResponse);
+      this.sendFinishGameResponse(winner);
+
       const index = this.games.indexOf(game);
       this.games.splice(index, 1);
       players.updateWinners();
+    }
+  }
+
+  private deletePlayerFormGame(game: Game, playerId: number) {
+    const deletePlayer = game.players.find((item) => item.indexPlayer === playerId);
+
+    if (deletePlayer) {
+      const index = game.players.indexOf(deletePlayer);
+      game.players.splice(index, 1);
+    }
+  }
+
+  public handlePlayerExit(exitPlayerId: number) {
+    const game = this.games.find((game) =>
+      game.players.find((player) => player.indexPlayer === exitPlayerId),
+    );
+
+    if (game) {
+      this.deletePlayerFormGame(game, exitPlayerId);
+      this.finishGame(game);
     }
   }
 }

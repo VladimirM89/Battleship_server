@@ -1,4 +1,3 @@
-/* eslint-disable import/no-cycle */
 import { Type } from "../constants/enums/webSocket";
 import commonRequestResponse from "../models/commonRequestResponse";
 import { PlayerInDB } from "../models/player";
@@ -48,9 +47,10 @@ class RoomService {
   private deleteRoom(room: UpdateRoomsResponse): void {
     const index = this.rooms.indexOf(room);
     this.rooms.splice(index, 1);
+    this.updateRooms();
   }
 
-  private deleteAllRoomsWithPlayer(players: Array<PlayerInRoom>) {
+  public deleteAllRoomsWithPlayer(players: Array<PlayerInRoom>) {
     players.forEach((player) => {
       const { index } = player;
       this.rooms.forEach((room) => {

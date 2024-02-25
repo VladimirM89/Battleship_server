@@ -1,4 +1,3 @@
-/* eslint-disable import/prefer-default-export */
 import { WebSocketServer } from "ws";
 import { WEBSOCKET_HOST, WEBSOCKET_PORT } from "./constants/webSocketConstants";
 import { WEBSOCKET_START_TEXT } from "./constants/constants";
@@ -18,14 +17,11 @@ const wss = new WebSocketServer({ port: WEBSOCKET_PORT, host: WEBSOCKET_HOST });
 console.log(`${WEBSOCKET_START_TEXT} ${WEBSOCKET_HOST}: ${WEBSOCKET_PORT}`);
 
 const rooms = new RoomService();
-
 const game = new GameService();
 
 wss.on("connection", (ws) => {
   ws.on("message", function message(rawData) {
     const request: commonRequestResponse = JSON.parse(rawData.toString());
-    console.log("received: ", request);
-
     const requestRawData: unknown = request.data.length ? JSON.parse(request.data) : request.data;
 
     switch (request.type) {
@@ -134,21 +130,21 @@ wss.on("connection", (ws) => {
   });
 
   ws.on("error", () => {
-    console.log("WS ERROR");
-    ws.close();
+    ws.emit("close");
   });
 
   ws.on("close", () => {
-    const result = playersOnline.findOnlinePlayerByWs(ws);
-    if (result) {
-      playersOnline.deleteOnlinePlayer(result);
+    const player = playersOnline.findOnlinePlayerByWs(ws);
+    if (player) {
+      playersOnline.deleteOnlinePlayer(player);
+      game.handlePlayerExit(player.player.index);
+      rooms.deleteAllRoomsWithPlayer([player.player]);
 
       console.log(
-        `Player '${result.player.name}' is offline. Websocket id=${result.id} disconnected`,
+        `Player '${player.player.name}' is offline. Websocket id=${player.id} disconnected`,
       );
     } else {
       ws.close();
-      // TODO: clear game room or delete room with player witch disconnected
       console.log(`Websocket disconnected`);
     }
   });
