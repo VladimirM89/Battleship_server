@@ -1,10 +1,10 @@
-/* eslint-disable import/no-cycle */
 /* eslint-disable no-param-reassign */
 /* eslint-disable no-return-assign */
-import { rooms } from "..";
+import { MAX_GAME_FIELD_SIZE } from "../constants/constants";
 import { ShotStatus, Type } from "../constants/enums/webSocket";
 import players from "../db/players";
 import playersOnline from "../db/playersOnline";
+import rooms from "../db/rooms";
 import commonRequestResponse from "../models/commonRequestResponse";
 import {
   AttackFeedbackResponse,
@@ -165,21 +165,6 @@ class GameService {
 
       this.botAttack(game);
     }
-
-    // if (game && game.botInd === game.players[game.currentPlayerIndex].indexPlayer) {
-    //   const player = game.players.find(
-    //     (item) => item.indexPlayer === game.players[game.currentPlayerIndex].indexPlayer,
-    //   );
-    //   const coordinates = this.randomShot(player!.shots!);
-    //   setTimeout(() => {
-    //     this.receiveAttack({
-    //       gameId,
-    //       indexPlayer: game.botInd!,
-    //       x: coordinates.x,
-    //       y: coordinates.y,
-    //     });
-    //   }, 500);
-    // }
   }
 
   public receiveAttack(attackRequest: AttackRequest) {
@@ -194,11 +179,6 @@ class GameService {
 
     if (game) {
       const gamePlayers = game.players;
-
-      // if (indexPlayer !== gamePlayers[game.currentPlayerIndex].indexPlayer) {
-      //   console.log("CHECK indexPlayer !== gamePlayers[game.currentPlayerIndex].indexPlayer");
-      //   return;
-      // }
 
       const enemy = gamePlayers.find((item) => item.indexPlayer !== indexPlayer);
 
@@ -305,8 +285,8 @@ class GameService {
   }
 
   private randomShot(shots: Array<Coordinates>): Coordinates {
-    const randomX = Math.floor(Math.random() * 10);
-    const randomY = Math.floor(Math.random() * 10);
+    const randomX = Math.floor(Math.random() * MAX_GAME_FIELD_SIZE);
+    const randomY = Math.floor(Math.random() * MAX_GAME_FIELD_SIZE);
     const isShotExist = shots.find((item) => item.x === randomX && item.y === randomY);
 
     if (!isShotExist) {
