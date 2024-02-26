@@ -33,6 +33,7 @@ try {
         switch (request.type) {
           case Type.REG:
             {
+              console.log(`Receive request: `, Type.REG);
               const loginData = requestRawData as LoginRequest;
               const playerDataResponse = players.handlePlayerLogin(loginData);
 
@@ -41,6 +42,7 @@ try {
                 data: JSON.stringify(playerDataResponse),
                 id: 0,
               };
+              console.log(`Send response: `, Type.REG);
 
               const player = players.findPlayer(loginData);
 
@@ -80,6 +82,7 @@ try {
 
           case Type.ADD_USER_TO_ROOM:
             {
+              console.log(`Receive request: `, Type.ADD_USER_TO_ROOM);
               const { indexRoom } = requestRawData as AddPlayerToRoomRequest;
               const roomToAddNewPlayer = rooms.findRoomByIndex(indexRoom);
               const newPlayer = playersOnline.findOnlinePlayerByWs(ws)!.player;
@@ -109,6 +112,7 @@ try {
 
           case Type.ADD_SHIPS:
             {
+              console.log(`Receive request: `, Type.ADD_SHIPS);
               const requestData = requestRawData as AddShipsRequest;
               games.addShipsToPlayers(requestData);
               games.startGame(requestData.gameId);
@@ -118,6 +122,7 @@ try {
 
           case Type.ATTACK:
             {
+              console.log(`Receive request: `, Type.ATTACK);
               const attackRequest = requestRawData as AttackRequest;
               games.receiveAttack(attackRequest);
             }
@@ -125,6 +130,7 @@ try {
 
           case Type.RANDOM_ATTACK:
             {
+              console.log(`Receive request: `, Type.RANDOM_ATTACK);
               const randomAttackRequest = requestRawData as RandomAttackRequest;
               games.handleRandomAttack(randomAttackRequest);
             }
@@ -132,6 +138,7 @@ try {
 
           case Type.SINGLE_PLAY:
             {
+              console.log(`Receive request: `, Type.SINGLE_PLAY);
               const currentPlayer = playersOnline.findOnlinePlayerByWs(ws);
               if (currentPlayer) {
                 games.handleGameWithBot({

@@ -85,6 +85,7 @@ class Players {
     };
 
     sendToAll(updateWinnersResponse);
+    console.log(`Send response: `, Type.UPDATE_WINNERS);
   }
 
   private getPlayersWithWins(): Array<UpdateWinnersResponse> {

@@ -119,6 +119,7 @@ class GameService {
         };
         item.webSocket?.send(JSON.stringify(startGameResponse));
       });
+      console.log(`Send response: `, Type.START_GAME);
       this.changePlayerInGame(gameId);
     }
   }
@@ -162,6 +163,7 @@ class GameService {
         };
         item.webSocket?.send(JSON.stringify(turnPlayerResponse));
       });
+      console.log(`Send response: `, Type.TURN);
 
       this.botAttack(game);
     }
@@ -337,6 +339,7 @@ class GameService {
       players.addPlayerWin(winner!.indexPlayer);
       players.updateWinners();
     }
+    console.log(`Send response: `, Type.FINISH);
   }
 
   private deletePlayerFormGame(game: Game, playerId: number) {

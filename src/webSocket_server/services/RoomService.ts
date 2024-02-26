@@ -72,6 +72,7 @@ class RoomService {
       id: 0,
     };
     sendToAll(updateRoomsResponse);
+    console.log(`Send response: `, Type.UPDATE_ROOM);
   }
 }
 
