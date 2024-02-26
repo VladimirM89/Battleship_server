@@ -1,5 +1,7 @@
+/* eslint-disable import/no-cycle */
 /* eslint-disable no-param-reassign */
 /* eslint-disable no-return-assign */
+import { rooms } from "..";
 import { ShotStatus, Type } from "../constants/enums/webSocket";
 import players from "../db/players";
 import playersOnline from "../db/playersOnline";
@@ -18,13 +20,19 @@ import {
 } from "../models/game";
 import { AddShipsRequest, Ship } from "../models/room";
 import checkShot from "../utils/checkShot";
+import generateNumberId from "../utils/generateNumberId";
+import generateShips from "../utils/generateShips";
 import { sendInRoom } from "../utils/sendResponse";
 
 class GameService {
   private games: Array<Game>;
 
+  private botId: number;
+
   constructor() {
     this.games = [];
+    this.botId = generateNumberId();
+    players.createPlayer({ name: "Bot player", password: "BotBOTBot12345" }, this.botId);
   }
 
   private createGame(gameId: number) {
@@ -52,7 +60,7 @@ class GameService {
           data: JSON.stringify(createGameResponse),
           id: 0,
         };
-        item.webSocket.send(JSON.stringify(response));
+        item.webSocket?.send(JSON.stringify(response));
       });
     }
   }
@@ -109,33 +117,69 @@ class GameService {
           data: JSON.stringify(responseData),
           id: 0,
         };
-        item.webSocket.send(JSON.stringify(startGameResponse));
+        item.webSocket?.send(JSON.stringify(startGameResponse));
       });
       this.changePlayerInGame(gameId);
     }
   }
 
+  private botAttack(game: Game) {
+    if (game && game.botInd === game.players[game.currentPlayerIndex].indexPlayer) {
+      const player = game.players.find(
+        (item) => item.indexPlayer === game.players[game.currentPlayerIndex].indexPlayer,
+      );
+      const coordinates = this.randomShot(player!.shots!);
+      setTimeout(() => {
+        this.receiveAttack({
+          gameId: game.gameId,
+          indexPlayer: game.botInd!,
+          x: coordinates.x,
+          y: coordinates.y,
+        });
+      }, 500);
+    }
+  }
+
   private changePlayerInGame(gameId: number, isChange = true) {
     const game = this.findGameById(gameId);
-    if (isChange) {
-      if (game!.currentPlayerIndex === 0) {
-        game!.currentPlayerIndex = 1;
-      } else {
-        game!.currentPlayerIndex = 0;
+    if (game) {
+      if (isChange) {
+        if (game.currentPlayerIndex === 0) {
+          game.currentPlayerIndex = 1;
+        } else {
+          game.currentPlayerIndex = 0;
+        }
       }
+
+      game.players.forEach((item) => {
+        const responseData: PlayerTurnResponse = {
+          currentPlayer: game.players[game!.currentPlayerIndex].indexPlayer,
+        };
+        const turnPlayerResponse: commonRequestResponse = {
+          type: Type.TURN,
+          data: JSON.stringify(responseData),
+          id: 0,
+        };
+        item.webSocket?.send(JSON.stringify(turnPlayerResponse));
+      });
+
+      this.botAttack(game);
     }
 
-    game?.players.forEach((item) => {
-      const responseData: PlayerTurnResponse = {
-        currentPlayer: game.players[game!.currentPlayerIndex].indexPlayer,
-      };
-      const turnPlayerResponse: commonRequestResponse = {
-        type: Type.TURN,
-        data: JSON.stringify(responseData),
-        id: 0,
-      };
-      item.webSocket.send(JSON.stringify(turnPlayerResponse));
-    });
+    // if (game && game.botInd === game.players[game.currentPlayerIndex].indexPlayer) {
+    //   const player = game.players.find(
+    //     (item) => item.indexPlayer === game.players[game.currentPlayerIndex].indexPlayer,
+    //   );
+    //   const coordinates = this.randomShot(player!.shots!);
+    //   setTimeout(() => {
+    //     this.receiveAttack({
+    //       gameId,
+    //       indexPlayer: game.botInd!,
+    //       x: coordinates.x,
+    //       y: coordinates.y,
+    //     });
+    //   }, 500);
+    // }
   }
 
   public receiveAttack(attackRequest: AttackRequest) {
@@ -151,9 +195,10 @@ class GameService {
     if (game) {
       const gamePlayers = game.players;
 
-      if (indexPlayer !== gamePlayers[game.currentPlayerIndex].indexPlayer) {
-        return;
-      }
+      // if (indexPlayer !== gamePlayers[game.currentPlayerIndex].indexPlayer) {
+      //   console.log("CHECK indexPlayer !== gamePlayers[game.currentPlayerIndex].indexPlayer");
+      //   return;
+      // }
 
       const enemy = gamePlayers.find((item) => item.indexPlayer !== indexPlayer);
 
@@ -195,7 +240,7 @@ class GameService {
         data: JSON.stringify(responseData),
         id: 0,
       };
-      item.webSocket.send(JSON.stringify(turnPlayerResponse));
+      item.webSocket?.send(JSON.stringify(turnPlayerResponse));
     });
   }
 
@@ -282,10 +327,8 @@ class GameService {
     };
 
     if (winner && looser) {
-      players.addPlayerWin(winner.indexPlayer);
       sendInRoom([winner.indexPlayer, looser.indexPlayer], finishGameResponse);
     } else {
-      players.addPlayerWin(winner.indexPlayer);
       sendInRoom([winner.indexPlayer], finishGameResponse);
     }
   }
@@ -301,6 +344,7 @@ class GameService {
 
         const index = this.games.indexOf(game);
         this.games.splice(index, 1);
+        players.addPlayerWin(winner!.indexPlayer);
         players.updateWinners();
       }
     } else if (game.players.length === 1) {
@@ -310,6 +354,7 @@ class GameService {
 
       const index = this.games.indexOf(game);
       this.games.splice(index, 1);
+      players.addPlayerWin(winner!.indexPlayer);
       players.updateWinners();
     }
   }
@@ -331,6 +376,35 @@ class GameService {
     if (game) {
       this.deletePlayerFormGame(game, exitPlayerId);
       this.finishGame(game);
+    }
+  }
+
+  private generateBot() {
+    const bot: GamePlayer = {
+      indexPlayer: this.botId,
+      ships: generateShips(),
+      shots: [],
+    };
+    return bot;
+  }
+
+  public handleGameWithBot(player: Omit<GamePlayer, "ships">) {
+    const gameId = generateNumberId();
+    const gameWithBot = this.createGame(gameId);
+
+    const bot = this.generateBot();
+    gameWithBot.players.push(bot);
+    gameWithBot.botInd = bot.indexPlayer;
+    this.addPlayerToGame(player, gameId);
+    this.sendCreateGame(gameId);
+    const playerDeleteFromRooms = players
+      .getAllPlayers()
+      .find((item) => item.index === player.indexPlayer);
+    if (playerDeleteFromRooms) {
+      rooms.deleteAllRoomsWithPlayer([
+        { index: playerDeleteFromRooms.index, name: playerDeleteFromRooms.name },
+      ]);
+      rooms.updateRooms();
     }
   }
 }

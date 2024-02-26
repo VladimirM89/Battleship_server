@@ -18,8 +18,8 @@ class Players {
     return this.players;
   }
 
-  private createPlayer(data: LoginRequest): void {
-    this.players.push({ ...data, index: generateNumberId(), wins: 0 });
+  public createPlayer(data: LoginRequest, index?: number): void {
+    this.players.push({ ...data, index: index || generateNumberId(), wins: 0 });
   }
 
   private checkIsPasswordCorrect(data: LoginRequest): boolean {

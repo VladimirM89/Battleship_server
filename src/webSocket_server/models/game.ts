@@ -45,7 +45,7 @@ export interface FinishResponse {
 
 export interface GamePlayer {
   indexPlayer: number;
-  webSocket: WebSocket;
+  webSocket?: WebSocket;
   ships: Array<Ship>;
   shots?: Array<Coordinates>;
 }
@@ -54,4 +54,5 @@ export interface Game {
   gameId: number;
   players: Array<GamePlayer>;
   currentPlayerIndex: number;
+  botInd?: number;
 }
