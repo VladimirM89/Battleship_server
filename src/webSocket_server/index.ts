@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import { WebSocketServer } from "ws";
 import { WEBSOCKET_HOST, WEBSOCKET_PORT } from "./constants/webSocketConstants";
 import {
