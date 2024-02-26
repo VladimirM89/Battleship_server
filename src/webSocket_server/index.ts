@@ -70,6 +70,7 @@ try {
 
           case Type.CREATE_ROOM:
             {
+              console.log(`Receive request: `, Type.CREATE_ROOM);
               const currentPlayer = playersOnline.findOnlinePlayerByWs(ws);
               if (currentPlayer) {
                 rooms.createRoomWithPlayer(currentPlayer.player);

@@ -62,6 +62,7 @@ class GameService {
         };
         item.webSocket?.send(JSON.stringify(response));
       });
+      console.log(`Send response: `, Type.CREATE_GAME);
     }
   }
 
@@ -326,6 +327,7 @@ class GameService {
 
         const index = this.games.indexOf(game);
         this.games.splice(index, 1);
+        console.log(`Send response: `, Type.FINISH);
         players.addPlayerWin(winner!.indexPlayer);
         players.updateWinners();
       }
@@ -338,8 +340,8 @@ class GameService {
       this.games.splice(index, 1);
       players.addPlayerWin(winner!.indexPlayer);
       players.updateWinners();
+      console.log(`Send response: `, Type.FINISH);
     }
-    console.log(`Send response: `, Type.FINISH);
   }
 
   private deletePlayerFormGame(game: Game, playerId: number) {

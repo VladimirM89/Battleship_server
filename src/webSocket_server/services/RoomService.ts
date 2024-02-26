@@ -41,6 +41,7 @@ class RoomService {
 
     if (!roomWithPlayerExist) {
       this.rooms.push(newRoom);
+      console.log(`Send response: `, Type.ADD_USER_TO_ROOM);
     }
   }
 
