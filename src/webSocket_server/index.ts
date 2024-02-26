@@ -3,7 +3,9 @@ import { WEBSOCKET_HOST, WEBSOCKET_PORT } from "./constants/webSocketConstants";
 import {
   CLIENT_DISCONNECT_TEXT,
   ERROR_HANDLE_REQUEST_TEXT,
+  RECEIVE_REQUEST_TEXT,
   RESTART_WS_SERVER,
+  SEND_RESPONSE_TEXT,
   SERVER_ERROR_TEXT,
   WEBSOCKET_START_TEXT,
 } from "./constants/constants";
@@ -32,7 +34,7 @@ try {
         switch (request.type) {
           case Type.REG:
             {
-              console.log(`Receive request: `, Type.REG);
+              console.log(`${RECEIVE_REQUEST_TEXT}`, Type.REG);
               const loginData = requestRawData as LoginRequest;
               const playerDataResponse = players.handlePlayerLogin(loginData);
 
@@ -41,7 +43,7 @@ try {
                 data: JSON.stringify(playerDataResponse),
                 id: 0,
               };
-              console.log(`Send response: `, Type.REG);
+              console.log(`${SEND_RESPONSE_TEXT}`, Type.REG);
 
               const player = players.findPlayer(loginData);
 
@@ -70,7 +72,7 @@ try {
 
           case Type.CREATE_ROOM:
             {
-              console.log(`Receive request: `, Type.CREATE_ROOM);
+              console.log(`${RECEIVE_REQUEST_TEXT}`, Type.CREATE_ROOM);
               const currentPlayer = playersOnline.findOnlinePlayerByWs(ws);
               if (currentPlayer) {
                 rooms.createRoomWithPlayer(currentPlayer.player);
@@ -82,7 +84,7 @@ try {
 
           case Type.ADD_USER_TO_ROOM:
             {
-              console.log(`Receive request: `, Type.ADD_USER_TO_ROOM);
+              console.log(`${RECEIVE_REQUEST_TEXT}`, Type.ADD_USER_TO_ROOM);
               const { indexRoom } = requestRawData as AddPlayerToRoomRequest;
               const roomToAddNewPlayer = rooms.findRoomByIndex(indexRoom);
               const newPlayer = playersOnline.findOnlinePlayerByWs(ws)!.player;
@@ -112,7 +114,7 @@ try {
 
           case Type.ADD_SHIPS:
             {
-              console.log(`Receive request: `, Type.ADD_SHIPS);
+              console.log(`${RECEIVE_REQUEST_TEXT}`, Type.ADD_SHIPS);
               const requestData = requestRawData as AddShipsRequest;
               games.addShipsToPlayers(requestData);
               games.startGame(requestData.gameId);
@@ -122,7 +124,7 @@ try {
 
           case Type.ATTACK:
             {
-              console.log(`Receive request: `, Type.ATTACK);
+              console.log(`${RECEIVE_REQUEST_TEXT}`, Type.ATTACK);
               const attackRequest = requestRawData as AttackRequest;
               games.receiveAttack(attackRequest);
             }
@@ -130,7 +132,7 @@ try {
 
           case Type.RANDOM_ATTACK:
             {
-              console.log(`Receive request: `, Type.RANDOM_ATTACK);
+              console.log(`${RECEIVE_REQUEST_TEXT}`, Type.RANDOM_ATTACK);
               const randomAttackRequest = requestRawData as RandomAttackRequest;
               games.handleRandomAttack(randomAttackRequest);
             }
@@ -138,7 +140,7 @@ try {
 
           case Type.SINGLE_PLAY:
             {
-              console.log(`Receive request: `, Type.SINGLE_PLAY);
+              console.log(`${RECEIVE_REQUEST_TEXT}`, Type.SINGLE_PLAY);
               const currentPlayer = playersOnline.findOnlinePlayerByWs(ws);
               if (currentPlayer) {
                 games.handleGameWithBot({

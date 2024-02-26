@@ -1,3 +1,4 @@
+import { SEND_RESPONSE_TEXT } from "../constants/constants";
 import { Type } from "../constants/enums/webSocket";
 import commonRequestResponse from "../models/commonRequestResponse";
 import { PlayerInDB } from "../models/player";
@@ -41,7 +42,7 @@ class RoomService {
 
     if (!roomWithPlayerExist) {
       this.rooms.push(newRoom);
-      console.log(`Send response: `, Type.ADD_USER_TO_ROOM);
+      console.log(`${SEND_RESPONSE_TEXT}`, Type.ADD_USER_TO_ROOM);
     }
   }
 
@@ -73,7 +74,7 @@ class RoomService {
       id: 0,
     };
     sendToAll(updateRoomsResponse);
-    console.log(`Send response: `, Type.UPDATE_ROOM);
+    console.log(`${SEND_RESPONSE_TEXT}`, Type.UPDATE_ROOM);
   }
 }
 

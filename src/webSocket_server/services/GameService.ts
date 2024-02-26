@@ -1,6 +1,6 @@
 /* eslint-disable no-param-reassign */
 /* eslint-disable no-return-assign */
-import { MAX_GAME_FIELD_SIZE } from "../constants/constants";
+import { MAX_GAME_FIELD_SIZE, SEND_RESPONSE_TEXT } from "../constants/constants";
 import { ShotStatus, Type } from "../constants/enums/webSocket";
 import players from "../db/players";
 import playersOnline from "../db/playersOnline";
@@ -62,7 +62,7 @@ class GameService {
         };
         item.webSocket?.send(JSON.stringify(response));
       });
-      console.log(`Send response: `, Type.CREATE_GAME);
+      console.log(`${SEND_RESPONSE_TEXT}`, Type.CREATE_GAME);
     }
   }
 
@@ -120,7 +120,7 @@ class GameService {
         };
         item.webSocket?.send(JSON.stringify(startGameResponse));
       });
-      console.log(`Send response: `, Type.START_GAME);
+      console.log(`${SEND_RESPONSE_TEXT}`, Type.START_GAME);
       this.changePlayerInGame(gameId);
     }
   }
@@ -164,7 +164,7 @@ class GameService {
         };
         item.webSocket?.send(JSON.stringify(turnPlayerResponse));
       });
-      console.log(`Send response: `, Type.TURN);
+      console.log(`${SEND_RESPONSE_TEXT}`, Type.TURN);
 
       this.botAttack(game);
     }
@@ -327,7 +327,7 @@ class GameService {
 
         const index = this.games.indexOf(game);
         this.games.splice(index, 1);
-        console.log(`Send response: `, Type.FINISH);
+        console.log(`${SEND_RESPONSE_TEXT}`, Type.FINISH);
         players.addPlayerWin(winner!.indexPlayer);
         players.updateWinners();
       }
@@ -340,7 +340,7 @@ class GameService {
       this.games.splice(index, 1);
       players.addPlayerWin(winner!.indexPlayer);
       players.updateWinners();
-      console.log(`Send response: `, Type.FINISH);
+      console.log(`${SEND_RESPONSE_TEXT}`, Type.FINISH);
     }
   }
 

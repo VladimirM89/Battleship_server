@@ -1,4 +1,8 @@
-import { INCORRECT_PLAYER_PASSWORD_TEXT, PLAYER_ONLINE_TEXT } from "../constants/constants";
+import {
+  INCORRECT_PLAYER_PASSWORD_TEXT,
+  PLAYER_ONLINE_TEXT,
+  SEND_RESPONSE_TEXT,
+} from "../constants/constants";
 import { Type } from "../constants/enums/webSocket";
 import playersOnline from "../db/playersOnline";
 import commonRequestResponse from "../models/commonRequestResponse";
@@ -85,7 +89,7 @@ class Players {
     };
 
     sendToAll(updateWinnersResponse);
-    console.log(`Send response: `, Type.UPDATE_WINNERS);
+    console.log(`${SEND_RESPONSE_TEXT}`, Type.UPDATE_WINNERS);
   }
 
   private getPlayersWithWins(): Array<UpdateWinnersResponse> {
