@@ -183,6 +183,10 @@ class GameService {
     if (game) {
       const gamePlayers = game.players;
 
+      if (indexPlayer !== gamePlayers[game.currentPlayerIndex].indexPlayer) {
+        return;
+      }
+
       const enemy = gamePlayers.find((item) => item.indexPlayer !== indexPlayer);
 
       if (enemy) {
