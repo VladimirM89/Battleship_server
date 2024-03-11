@@ -1,0 +1,11 @@
+export const WEBSOCKET_START_TEXT = "Websocket is created at the address:";
+export const INCORRECT_PLAYER_PASSWORD_TEXT = "Password incorrect";
+export const PLAYER_ONLINE_TEXT = "The player is already online";
+export const SERVER_ERROR_TEXT = "Internal server error";
+export const CLIENT_DISCONNECT_TEXT = "Client disconnected";
+export const ERROR_HANDLE_REQUEST_TEXT = "Error handle client response";
+export const RESTART_WS_SERVER = "Restart websocket server";
+export const RECEIVE_REQUEST_TEXT = "Receive request: ";
+export const SEND_RESPONSE_TEXT = "Send response: ";
+export const MAX_GAME_FIELD_SIZE = 10;
+export const RANDOM_RANGE = 1000000;
